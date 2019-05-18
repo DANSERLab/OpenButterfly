@@ -143,7 +143,7 @@ def make_start_time_array(name,session):
 		
 #==============================================================
 # FUNCTION: Heart Rate ./heart_rate/Session1/HR_Mike_Session1_2019-04-23.csv
-def heart_rate_clipping(name,session):
+def heart_rate_start_times_array(name,session):
 
 	# First get the global start time for the Heart Rate Recording and break into hours,min, and sec
 
@@ -234,4 +234,4 @@ file_muse = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject +'.csv')
 #print ("You entered " + subject + "and " + session) 
 
 make_start_time_array(subject,session)
-heart_rate_clipping(subject,session)
+heart_rate_start_times_array(subject,session)
