@@ -15,17 +15,18 @@ import xlsxwriter
 #==============================================================
 # Variable Block
 
-subject="Mike"
-session="Session1"
-neulog_start_times = []
-clock_start_times = []
-heart_rate_start_times = []
-gsr_start_times = []
-date = []
-number_of_recordings = []
-recording_transitions = []
-muse_start_time = []
-
+subject="Mike"						# Subject's name as formated in File name
+session="Session1"					# Session number to check
+clock_start_times = []				# Array of global clock times that were recorded
+hr_clock_start_time = []			# Time the HR monitor began recording
+hr_offset_min = []
+hr_offset_sec = []
+heart_rate_start_times = []			# Array of all the beginning times to clip
+gsr_start_times = []				# Array of all the beginning times to clip
+date = []							# Date of session
+# number_of_recordings = []			# The number of Muse/Neulog recordings
+recording_transitions = []			# Array for each "part".  Shows transitions from recording 1 to recording 2 to recording 3, etc
+muse_start_time = []				# Array of all the begining times to clip
 
 #==============================================================
 # FUNCTION:  make excel workbook with correct name and sheet names
@@ -102,9 +103,9 @@ def make_start_time_array(name,session):
     	# loop for making a column an array
 		#for row in originalFile:
 		#	gsr_start_times.append(row[2])
-
+		global number_of_recordings
 		date.append(originalFile_time[2][1])
-		number_of_recordings.append(originalFile_time[3][1])
+		number_of_recordings = int(originalFile_time[3][1])
 
 		if session in ["Session1","Session2","Session3","Session4","Session5","Session6"]:
 			i = 7
@@ -143,7 +144,7 @@ def make_start_time_array(name,session):
 		
 #==============================================================
 # FUNCTION: Heart Rate ./heart_rate/Session1/HR_Mike_Session1_2019-04-23.csv
-def heart_rate_start_times_array(name,session):
+def heart_rate_clock_start_time(name,session):
 
 	# First get the global start time for the Heart Rate Recording and break into hours,min, and sec
 
@@ -151,9 +152,10 @@ def heart_rate_start_times_array(name,session):
     		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
     		originalFile_HR = list(reader)								# make a list of spread sheet, need a list to index to a specfic cell and overwrite old spread sheet
 	
-	heart_rate_start_times.append(originalFile_HR[1][3])
+	hr_clock_start_time.append(originalFile_HR[1][3])
 
-	hr_hour, hr_min, hr_sec = heart_rate_start_times[0].split(":")
+	global hr_hour, hr_min, hr_sec
+	hr_hour, hr_min, hr_sec = hr_clock_start_time[0].split(":")
 	hr_hour = int(hr_hour)
 	hr_min = int(hr_min)
 	hr_sec = int(hr_sec)
@@ -161,9 +163,13 @@ def heart_rate_start_times_array(name,session):
 
 	csvFile.close()
 
+	
+#==============================================================
+# FUNCTION: find the offset from beginning of HR file to beginning of particular Muse file
+def hr_find_offsets(input_file):
 	# Next get start minute of Muse which should be later than the Heart rate.  
 	# Need to take care of cases where there are multiple muse recordings
-	with open(file_muse, 'rb') as csvFile:
+	with open(input_file, 'rb') as csvFile:
     		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
     		originalFile_muse = list(reader)	
 
@@ -186,20 +192,22 @@ def heart_rate_start_times_array(name,session):
     	# If muse and HR hours differ subtract HR min and sec from 60 then add to Muse min and sec
 
     	if hr_hour == muse_hour:
-    		hr_offset_min = muse_hour - hr_hour
-    		hr_offset_sec = muse_sec - hr_sec
+    		hr_offset_min.append(muse_hour - hr_hour)
+    		hr_offset_sec.append(muse_sec - hr_sec)
 
     	if hr_hour!=muse_hour:
-    		hr_offset_min = (60 - hr_min) + muse_min
-    		hr_offset_sec = (60 - hr_sec) + muse_sec
-    		print(hr_offset_min)
-    		print(hr_offset_sec)
+    		hr_offset_min.append((60 - hr_min) + muse_min)
+    		hr_offset_sec.append((60 - hr_sec) + muse_sec)
 
 
 
 #==============================================================
 # FUNCTION: Muse ./muse/Session1/muse_Mike_Session1_2019-04-23.csv
+# This function should be take a singular start time (not an array), copy the appropiate 
+# 60 seconds of data, and append it to the sheet of the excel book.  
+# The time to beging will be a string you can search for in the Muse file.
 
+#def clip_muse(time_to_begin_at, sheet_to_paste_to)
 
 	
 #==============================================================
@@ -234,4 +242,15 @@ file_muse = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject +'.csv')
 #print ("You entered " + subject + "and " + session) 
 
 make_start_time_array(subject,session)
-heart_rate_start_times_array(subject,session)
+heart_rate_clock_start_time(subject,session)
+
+for i in range(len(recording_transitions)): # should be length ofrecording transitions not number
+	if i == 1:
+		hr_find_offsets(file_muse)
+	if i > 1 and recording_transitions[i] > recording_transitions[i-1]:
+		file_muse_updated = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + recording_transitions[i] + '.csv')
+		#hr_find_offsets(file_muse_updated). # Need to make sure there are matching parts for each recording
+
+print(hr_offset_min)
+print(hr_offset_sec)
+
