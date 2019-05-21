@@ -18,7 +18,7 @@ import xlsxwriter
 
 
 subject="Mike"						# Subject's name as formated in File name
-session="Session1"					# Session number to check
+session="Session8"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
@@ -192,7 +192,7 @@ def hr_find_offsets(input_file):
 
     	muse_start_time.append(originalFile_muse[1][0])
 
-    	muse_hour, muse_min, muse_sec = muse_start_time[0].split(":")
+    	muse_hour, muse_min, muse_sec = muse_start_time[-1].split(":")
     	muse_date, muse_hour = muse_hour.split(" ")
     	muse_sec, muse_decisec = muse_sec.split(".")
     	muse_hour = int(muse_hour)
@@ -228,6 +228,8 @@ def hr_find_offsets(input_file):
     		hr_offset_min.append(diff_min)
     		hr_offset_sec.append(diff_sec)
 
+    	
+
 
 ############################################################################################################################	
 #============================================================================================================================
@@ -237,7 +239,7 @@ def hr_find_offsets(input_file):
 # 60 seconds of data, and append it to the sheet of the excel book.  
 # The time to beging will be a string you can search for in the Muse file.
 
-#def clip_muse(time_to_begin_at, sheet_to_paste_to)
+#def clip_(input_file, file_to_paste_to, sheet_name, time_to_begin_at)
 
 ############################################################################################################################		
 #============================================================================================================================
@@ -281,8 +283,25 @@ for i in range(len(recording_transitions)): # should be length ofrecording trans
 		hr_find_offsets(file_muse)
 	if i > 1 and recording_transitions[i] > recording_transitions[i-1]:
 		file_muse_updated = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + recording_transitions[i] + '.csv')
-		#hr_find_offsets(file_muse_updated). # Need to make sure there are matching parts for each recording
+		hr_find_offsets(file_muse_updated) # Need to make sure there are matching parts for each recording
+
+# Loop to concatenate min and sec (accounts for numbers less than 10, so has correct number of digits)
+for i in range(len(hr_offset_min)):
+	if hr_offset_min[i] < 10:
+		temp_min = '0' + str(hr_offset_min[i])
+	if hr_offset_min[i] > 9:
+		temp_min = str(hr_offset_min[i])
+	if hr_offset_sec[i] < 10:
+		temp_sec = '0' + str(hr_offset_sec[i])
+	if hr_offset_sec[i] > 9:
+		temp_sec = str(hr_offset_sec[i])
+	heart_rate_start_times.append('00:' + temp_min + ':' + temp_sec)
+
+print(temp_min+':'+temp_sec)
+
+print(heart_rate_start_times)
 
 print(hr_offset_min)
 print(hr_offset_sec)
+
 
