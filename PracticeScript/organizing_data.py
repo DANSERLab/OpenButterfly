@@ -160,7 +160,6 @@ def heart_rate_clock_start_time(name,session):
 	hr_min = int(hr_min)
 	hr_sec = int(hr_sec)
 	
-
 	csvFile.close()
 
 	
@@ -185,19 +184,31 @@ def hr_find_offsets(input_file):
 
 
 
-
     	csvFile.close()
 
     	# If both muse and HR hours match then just subtract HR min and sec from Muse min and sec to get offse
     	# If muse and HR hours differ subtract HR min and sec from 60 then add to Muse min and sec
 
     	if hr_hour == muse_hour:
-    		hr_offset_min.append(muse_hour - hr_hour)
-    		hr_offset_sec.append(muse_sec - hr_sec)
+    		diff_min = muse_min - (hr_min + 1)
+    		diff_sec = muse_sec + (60-hr_sec)
+    		if diff_sec > 59:
+    			diff_min = diff_min + 1
+    			diff_sec = diff_sec - 60
+
+    		hr_offset_min.append(diff_min)
+    		hr_offset_sec.append(diff_sec)
+
 
     	if hr_hour!=muse_hour:
-    		hr_offset_min.append((60 - hr_min) + muse_min)
-    		hr_offset_sec.append((60 - hr_sec) + muse_sec)
+    		diff_min = (60 - (hr_min + 1)) + muse_min
+    		diff_sec = (60 - hr_sec) + muse_sec
+    		if diff_sec > 59:
+    			diff_min = diff_min + 1
+    			diff_sec = diff_sec - 60
+
+    		hr_offset_min.append(diff_min)
+    		hr_offset_sec.append(diff_sec)
 
 
 
