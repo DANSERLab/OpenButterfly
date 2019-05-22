@@ -9,8 +9,8 @@ import os.path
 import copy
 import csv
 #import xlsxwriter module --> may need to download pip then run the command "pip install xlsxwriter"
-import xlsxwriter 
-
+import xlsxwriter
+from datetime import datetime
 
 #============================================================================================================================
 #					Variable Block
@@ -23,7 +23,10 @@ clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
 hr_offset_sec = []
-heart_rate_start_times = []			# Array of all the beginning times to clip
+hr_offset_start = []
+hr_offset_end = []
+hr_start_times = []			# Array of all the beginning times to clip
+hr_end_times = []			# Array of all the end times to clip
 gsr_start_times = []				# Array of all the beginning times to clip
 date = []							# Date of session
 # number_of_recordings = []			# The number of Muse/Neulog recordings
@@ -229,6 +232,57 @@ def hr_find_offsets(input_file):
     		hr_offset_sec.append(diff_sec)
 
     	
+############################################################################################################################	
+#============================================================================================================================
+
+# FUNCTION:  Need to add the offsets to each of the times from gsr_start_times to get hr_start_time
+def hr_start_end_times():
+	time_temp_hr = []
+	time_temp_gsr = []
+	hour_sum = 0
+
+	for i in range(len(hr_offset_start)):
+		time_temp_hr.append(datetime.strptime(hr_offset_start[i], '%H:%M:%S').time())
+
+	for j in range(len(gsr_start_times)):
+		if gsr_start_times[j] == 'X': time_temp_gsr.append('X')
+		else:
+			time_temp_gsr.append(datetime.strptime(gsr_start_times[j], '%H:%M:%S').time())
+	
+	for k in range(len(gsr_start_times)):
+		offset_index = int(recording_transitions[k]) - 1
+		if gsr_start_times[k] == 'X': hr_start_times.append('X')
+		else:
+			sec_sum = int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)
+			min_sum = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
+			min_sum_end = min_sum + 1
+			if sec_sum > 59: 
+				sec_sum = sec_sum - 60
+				min_sum = min_sum + 1
+				min_sum_end =+ 1
+			if min_sum > 59:			##### prob dont need this if statement, nothing over an hour
+				min_sum = min_sum - 60
+				hour_sum = 1
+			hr_start_times.append('00:' + str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)) + ':' +  str(int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)))
+
+		# temp_start_time_min = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
+		# print(temp_start_time_min)
+		#hr_start_times[k] = '00:'+ str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[0].minute))
+	
+	print(hr_start_times)
+	# print(time_temp_hr[0].minute)
+	# print(time_temp_gsr[0].minute)
+	# print(int(time_temp_hr[0].minute)+int(time_temp_gsr[0].minute))
+
+	#time_temp_gsr.append(datetime.strptime(gsr_start_times[0], '%H:%M:%S').time()) 
+	#time_temp_hr = datetime.strptime(hr_offset_start[0], '%H:%M:%S').time()
+
+	#hr_start_times.append(time_temp_gsr+time_temp_hr)
+	# print(hr_offset_start)
+	# print(time_temp_hr[1].minute)
+	# print(gsr_start_times[0])
+	# print(time_temp_gsr[0].minute)
+
 
 
 ############################################################################################################################	
@@ -285,7 +339,7 @@ for i in range(len(recording_transitions)): # should be length ofrecording trans
 		file_muse_updated = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + recording_transitions[i] + '.csv')
 		hr_find_offsets(file_muse_updated) # Need to make sure there are matching parts for each recording
 
-# Loop to concatenate min and sec (accounts for numbers less than 10, so has correct number of digits)
+# Loop to concatenate min and sec (accounts for numbers less than 10, so has correct number of digits).  By the end of an array of hr start times and end times to search for
 for i in range(len(hr_offset_min)):
 	if hr_offset_min[i] < 10:
 		temp_min = '0' + str(hr_offset_min[i])
@@ -295,13 +349,13 @@ for i in range(len(hr_offset_min)):
 		temp_sec = '0' + str(hr_offset_sec[i])
 	if hr_offset_sec[i] > 9:
 		temp_sec = str(hr_offset_sec[i])
-	heart_rate_start_times.append('00:' + temp_min + ':' + temp_sec)
+	hr_offset_start.append('00:' + temp_min + ':' + temp_sec)
+	if hr_offset_min[i]<9:
+		temp_min_end = '0' + str(hr_offset_min[i]+1)
+	if hr_offset_min[i]>8:
+		temp_min_end = str(hr_offset_min[i]+1)
+	hr_offset_end.append('00:' + temp_min_end + ':' + temp_sec)
 
-print(temp_min+':'+temp_sec)
+hr_start_end_times()
 
-print(heart_rate_start_times)
-
-print(hr_offset_min)
-print(hr_offset_sec)
-
-
+#clip()
