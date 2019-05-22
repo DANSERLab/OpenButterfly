@@ -251,7 +251,9 @@ def hr_start_end_times():
 	
 	for k in range(len(gsr_start_times)):
 		offset_index = int(recording_transitions[k]) - 1
-		if gsr_start_times[k] == 'X': hr_start_times.append('X')
+		if gsr_start_times[k] == 'X': 
+			hr_start_times.append('X')
+			hr_end_times.append('X')
 		else:
 			sec_sum = int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)
 			min_sum = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
@@ -259,17 +261,24 @@ def hr_start_end_times():
 			if sec_sum > 59: 
 				sec_sum = sec_sum - 60
 				min_sum = min_sum + 1
-				min_sum_end =+ 1
-			if min_sum > 59:			##### prob dont need this if statement, nothing over an hour
-				min_sum = min_sum - 60
-				hour_sum = 1
-			hr_start_times.append('00:' + str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)) + ':' +  str(int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)))
+				min_sum_end = min_sum_end + 1
+			if sec_sum > 9: sec_sum = str(sec_sum)
+			if sec_sum < 10: sec_sum = "0"+str(sec_sum)
+			if min_sum > 9: min_sum = str(min_sum)
+			if min_sum < 10: min_sum = '0' + str(min_sum)
+			if min_sum_end > 9: min_sum_end = str(min_sum_end)
+			if min_sum_end < 10: min_sum_end = '0' + str(min_sum_end)
 
+
+			#hr_start_times.append('00:' + str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)) + ':' +  str(int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)))
+			hr_start_times.append('00:' + min_sum + ':' +  sec_sum)
+			hr_end_times.append('00:' + min_sum_end + ':' + sec_sum)
 		# temp_start_time_min = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
 		# print(temp_start_time_min)
 		#hr_start_times[k] = '00:'+ str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[0].minute))
 	
 	print(hr_start_times)
+	print(hr_end_times)
 	# print(time_temp_hr[0].minute)
 	# print(time_temp_gsr[0].minute)
 	# print(int(time_temp_hr[0].minute)+int(time_temp_gsr[0].minute))
