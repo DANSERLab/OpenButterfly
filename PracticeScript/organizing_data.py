@@ -18,7 +18,7 @@ from datetime import datetime
 
 
 subject="Mike"						# Subject's name as formated in File name
-session="Session8"					# Session number to check
+session="Session1"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
@@ -46,7 +46,7 @@ muse_start_time = []				# Array of all the begining times to clip
 
 def make_excel_book(name,session):
 
-	if session in ["Session2","Session3","Session4","Session5","Session6"]:
+	if session in ["Session1", "Session2", "Session3", "Session4", "Session5", "Session6"]:
 		# Workbook() takes one, non-optional, argument  
 		# which is the filename that we want to create. 
 		workbook = xlsxwriter.Workbook('clipped_' + name + '_' + session + '.xlsx') 
@@ -59,7 +59,7 @@ def make_excel_book(name,session):
 		worksheet = workbook.add_worksheet("SR1") 
 		worksheet = workbook.add_worksheet("FAR2") 
 		worksheet = workbook.add_worksheet("SAR2") 
-		worksheet = workbook.add_worksheet("SAR2") 
+		worksheet = workbook.add_worksheet("SR2") 
 		worksheet = workbook.add_worksheet("FAR3") 
 		worksheet = workbook.add_worksheet("SAR3") 
 		worksheet = workbook.add_worksheet("SR3") 
@@ -83,7 +83,13 @@ def make_excel_book(name,session):
 		worksheet = workbook.add_worksheet("ExR2") 
 		worksheet = workbook.add_worksheet("AbdR2") 
 		worksheet = workbook.add_worksheet("MxdPr2") 
-		worksheet = workbook.add_worksheet("MxdPr2") 
+		worksheet = workbook.add_worksheet("MxdCr2")
+		worksheet = workbook.add_worksheet("FAR1") 
+		worksheet = workbook.add_worksheet("SAR1") 
+		worksheet = workbook.add_worksheet("SR1") 
+		worksheet = workbook.add_worksheet("FAR2") 
+		worksheet = workbook.add_worksheet("SAR2") 
+		worksheet = workbook.add_worksheet("SR2") 
 		  
 		# Finally, close the Excel file 
 		# via the close() method. 
@@ -165,7 +171,7 @@ def make_start_time_array(name,session):
 def heart_rate_clock_start_time(name,session):
 
 	# First get the global start time for the Heart Rate Recording and break into hours,min, and sec
-
+	global originalFile_HR
 	with open(file_HR, 'rb') as csvFile:
     		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
     		originalFile_HR = list(reader)								# make a list of spread sheet, need a list to index to a specfic cell and overwrite old spread sheet
@@ -235,20 +241,20 @@ def hr_find_offsets(input_file):
 ############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION:  Need to add the offsets to each of the times from gsr_start_times to get hr_start_time
+# FUNCTION:  Need to add the offsets to each of the times from gsr_start_times to get hr_end_time
 def hr_start_end_times():
-	time_temp_hr = []
+	time_temp_hr = []		#local arrays to put in "clock" format
 	time_temp_gsr = []
-	hour_sum = 0
 
 	for i in range(len(hr_offset_start)):
 		time_temp_hr.append(datetime.strptime(hr_offset_start[i], '%H:%M:%S').time())
 
-	for j in range(len(gsr_start_times)):
+	for j in range(len(gsr_start_times)):							# sometimes data is missing, we fill with an "X" to account for this
 		if gsr_start_times[j] == 'X': time_temp_gsr.append('X')
 		else:
 			time_temp_gsr.append(datetime.strptime(gsr_start_times[j], '%H:%M:%S').time())
 	
+	# This large for loop will create with start and stop arrays in the correct format, accounts for sec sum>59
 	for k in range(len(gsr_start_times)):
 		offset_index = int(recording_transitions[k]) - 1
 		if gsr_start_times[k] == 'X': 
@@ -269,29 +275,24 @@ def hr_start_end_times():
 			if min_sum_end > 9: min_sum_end = str(min_sum_end)
 			if min_sum_end < 10: min_sum_end = '0' + str(min_sum_end)
 
-
-			#hr_start_times.append('00:' + str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)) + ':' +  str(int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)))
 			hr_start_times.append('00:' + min_sum + ':' +  sec_sum)
 			hr_end_times.append('00:' + min_sum_end + ':' + sec_sum)
-		# temp_start_time_min = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
-		# print(temp_start_time_min)
-		#hr_start_times[k] = '00:'+ str(int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[0].minute))
-	
-	print(hr_start_times)
-	print(hr_end_times)
-	# print(time_temp_hr[0].minute)
-	# print(time_temp_gsr[0].minute)
-	# print(int(time_temp_hr[0].minute)+int(time_temp_gsr[0].minute))
 
-	#time_temp_gsr.append(datetime.strptime(gsr_start_times[0], '%H:%M:%S').time()) 
-	#time_temp_hr = datetime.strptime(hr_offset_start[0], '%H:%M:%S').time()
+############################################################################################################################	
+#============================================================================================================================
 
-	#hr_start_times.append(time_temp_gsr+time_temp_hr)
-	# print(hr_offset_start)
-	# print(time_temp_hr[1].minute)
-	# print(gsr_start_times[0])
-	# print(time_temp_gsr[0].minute)
-
+# FUNCTION:  HR
+def hr_clip():
+	for h in range(len(hr_start_times)):
+		for i, row in enumerate(originalFile_HR):			#original values.  This copy allow the avoidance of another open.
+			for field in row:  
+				if hr_start_times in field:
+					row_list[h] = i
+					print cruzid_list[h], row_list[h], finalPoints_list[h]
+			for j, column in enumerate(row):
+				if lab_dir in column:
+					lab_dir_column = j
+					column_list.append(j)
 
 
 ############################################################################################################################	
@@ -331,6 +332,7 @@ file_HR = os.path.join(fileDir, 'heart_rate/', session, 'HR_'+ subject +'.csv')
 file_muse = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject +'.csv')
 
 
+make_excel_book(subject,session)
 
 # take in subject and session 
 #subject = raw_input("Enter subject's name to consolidate: ")
@@ -366,5 +368,5 @@ for i in range(len(hr_offset_min)):
 	hr_offset_end.append('00:' + temp_min_end + ':' + temp_sec)
 
 hr_start_end_times()
-
+print(hr_offset_start)
 #clip()

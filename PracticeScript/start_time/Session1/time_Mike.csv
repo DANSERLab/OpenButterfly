@@ -5,7 +5,7 @@ Number of recordings,1,,
 ,global time,GSR time,Recording number if more than 1
 heart rate,1:05:00 PM,,
 range of motion,1:07:00 PM,,
-baseline,1:16:00 PM,0:00:20,
+baseline,1:16:00 PM,0:00:20,1
 FAR #1,1:17:00 PM,0:01:30,1
 SAR #1,1:19:00 PM,0:03:50,1
 SR #1,1:21:00 PM,0:05:25,1
@@ -15,5 +15,5 @@ SR #2,1:27:00 PM,0:10:55,1
 FAR #3,1:29:00 PM,0:12:55,1
 SAR #3,1:30:00 PM,0:14:30,1
 SR #3,1:32:00 PM,0:16:05,1
-survey,1:35:00 PM,0:19:45,
+survey,1:35:00 PM,0:19:45,1
 range of motion,1:40:00 PM,,
