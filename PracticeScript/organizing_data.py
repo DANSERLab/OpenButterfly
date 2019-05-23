@@ -27,9 +27,11 @@ hr_offset_min = []
 hr_offset_sec = []
 hr_offset_start = []
 hr_offset_end = []
-hr_start_times = []			# Array of all the beginning times to clip
-hr_end_times = []			# Array of all the end times to clip
-gsr_start_times = []				# Array of all the beginning times to clip
+hr_start_times = []					# Array of all the beginning times to clip
+hr_end_times = []					# Array of all the end times to clip
+gsr_start_times = []				# Array of all the beginning times to clip'
+gsr_end_times_corrected = []
+gsr_start_times_corrected = []
 date = []							# Date of session
 # number_of_recordings = []			# The number of Muse/Neulog recordings
 recording_transitions = []			# Array for each "part".  Shows transitions from recording 1 to recording 2 to recording 3, etc
@@ -269,6 +271,8 @@ def hr_start_end_times():
 		if gsr_start_times[k] == 'X': 
 			hr_start_times.append('X')
 			hr_end_times.append('X')
+			gsr_start_times_corrected.append('X')
+			gsr_end_times_corrected.append('X')
 		else:
 			sec_sum = int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)
 			min_sum = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
@@ -277,6 +281,9 @@ def hr_start_end_times():
 				sec_sum = sec_sum - 60
 				min_sum = min_sum + 1
 				min_sum_end = min_sum_end + 1
+			sec_sum_gsr = str(sec_sum)
+			min_sum_gsr = str(min_sum)
+			min_sum_end_gsr = str(min_sum_end)
 			if sec_sum > 9: sec_sum = str(sec_sum)
 			if sec_sum < 10: sec_sum = "0"+str(sec_sum)
 			if min_sum > 9: min_sum = str(min_sum)
@@ -287,6 +294,12 @@ def hr_start_end_times():
 			hr_start_times.append('00:' + min_sum + ':' +  sec_sum)
 			hr_end_times.append('00:' + min_sum_end + ':' + sec_sum)
 
+			gsr_start_times_corrected.append("'0:" + min_sum_gsr + ':' + sec_sum_gsr + '.0')
+			gsr_end_times_corrected.append("'0:" + min_sum_end_gsr + ':' + sec_sum_gsr + '.0')
+
+	print(gsr_start_times_corrected)
+	print(gsr_end_times_corrected)
+
 ############################################################################################################################	
 #============================================================================================================================
 
@@ -296,14 +309,15 @@ def clip_hr():
 
 	# This block makes a writer for the excel book
 	wb = openpyxl.load_workbook(clip_file_name)
-	print(wb.sheetnames[0])
+	#print(wb.sheetnames[0])
 	# ss = wb.worksheets[0]
 
 	# for i, row in enumerate(originalFile_HR):
 	# 	ss.append(row)
 
 	for h in range(len(hr_start_times)-1):
-		for i, row in enumerate(originalFile_HR):			#original values.  This copy allow the avoidance of another open.
+		for i, row in enumerate(originalFile_HR):
+			if i == 2: 	wb.worksheets[h].append(row)		
 			for field in row:  
 				if hr_start_times[h] in field: clip_flag = 1
 				if hr_end_times[h] in field: clip_flag = 0
@@ -317,6 +331,39 @@ def clip_hr():
 			# 	if lab_dir in column:
 			# 		lab_dir_column = j
 			# 		column_list.append(j)
+
+############################################################################################################################	
+#============================================================================================================================
+
+# FUNCTION:
+def clip_gsr():
+	global originalFile_gsr
+	with open(file_gsr, 'rU') as csvFile:
+    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+    		originalFile_gsr = list(reader)
+    	csvFile.close()
+
+
+
+	clip_flag = 0 
+	wb = openpyxl.load_workbook(clip_file_name)
+
+	print(originalFile_gsr[10][0])
+	print(gsr_start_times[2])
+
+	wb.worksheets[0].cell(row=1, column=4).value =	"Time_gsr"
+	wb.worksheets[0].cell(row=1, column=5).value =	"value_gsr"
+
+	for i, row in enumerate(originalFile_gsr):
+		for j, col in enumerate(row):
+			# if i == 7:  wb.worksheets[0].cell(row=i, column=j+4).value = originalFile_gsr[i][j]
+			for field in row:
+				if gsr_start_times[2] in field:  print("it recognizes it")
+
+	wb.save(clip_file_name)
+
+	
+
 
 
 ############################################################################################################################	
@@ -393,4 +440,5 @@ for i in range(len(hr_offset_min)):
 
 hr_start_end_times()
 clip_hr()
+clip_gsr()
 
