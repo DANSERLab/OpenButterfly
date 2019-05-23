@@ -11,6 +11,8 @@ import csv
 #import xlsxwriter module --> may need to download pip then run the command "pip install xlsxwriter"
 import xlsxwriter
 from datetime import datetime
+import openpyxl
+from openpyxl import Workbook
 
 #============================================================================================================================
 #					Variable Block
@@ -45,6 +47,8 @@ muse_start_time = []				# Array of all the begining times to clip
 # I'm working on this section right now
 
 def make_excel_book(name,session):
+	global clip_file_name
+	#global sheet_names 
 
 	if session in ["Session1", "Session2", "Session3", "Session4", "Session5", "Session6"]:
 		# Workbook() takes one, non-optional, argument  
@@ -63,7 +67,10 @@ def make_excel_book(name,session):
 		worksheet = workbook.add_worksheet("FAR3") 
 		worksheet = workbook.add_worksheet("SAR3") 
 		worksheet = workbook.add_worksheet("SR3") 
-		  
+		
+
+		clip_file_name = 'clipped_' + name + '_' + session + '.xlsx'
+		#sheet_names = ["baseline","FAR1","SAR1", "SR1", "FAR2", "SAR2", "SR2", "FAR3", "SAR3", "SR3"]
 		# Finally, close the Excel file 
 		# via the close() method. 
 		workbook.close() 
@@ -90,7 +97,9 @@ def make_excel_book(name,session):
 		worksheet = workbook.add_worksheet("FAR2") 
 		worksheet = workbook.add_worksheet("SAR2") 
 		worksheet = workbook.add_worksheet("SR2") 
-		  
+		
+		clip_file_name = 'clipped_' + name + '_' + session + '.xlsx'  
+		#sheet_names = ["baseline", "ExR1", "AbdR1", "MxdPr1", "MxdCr1", "ExR2", "AbdR2", "MxdPr2", "MxdCr2", "FAR1","SAR1", "SR1", "FAR2", "SAR2", "SR2"]
 		# Finally, close the Excel file 
 		# via the close() method. 
 		workbook.close() 
@@ -282,17 +291,32 @@ def hr_start_end_times():
 #============================================================================================================================
 
 # FUNCTION:  HR
-def hr_clip():
-	for h in range(len(hr_start_times)):
+def clip_hr():
+	clip_flag = 0
+
+	# This block makes a writer for the excel book
+	wb = openpyxl.load_workbook(clip_file_name)
+	print(wb.sheetnames[0])
+	# ss = wb.worksheets[0]
+
+	# for i, row in enumerate(originalFile_HR):
+	# 	ss.append(row)
+
+	for h in range(len(hr_start_times)-1):
 		for i, row in enumerate(originalFile_HR):			#original values.  This copy allow the avoidance of another open.
 			for field in row:  
-				if hr_start_times in field:
-					row_list[h] = i
-					print cruzid_list[h], row_list[h], finalPoints_list[h]
-			for j, column in enumerate(row):
-				if lab_dir in column:
-					lab_dir_column = j
-					column_list.append(j)
+				if hr_start_times[h] in field: clip_flag = 1
+				if hr_end_times[h] in field: clip_flag = 0
+				if clip_flag == 1: 
+					# ss.append(row)
+					wb.worksheets[h].append(row)
+
+	wb.save(clip_file_name)
+
+			# for j, column in enumerate(row):
+			# 	if lab_dir in column:
+			# 		lab_dir_column = j
+			# 		column_list.append(j)
 
 
 ############################################################################################################################	
@@ -368,5 +392,5 @@ for i in range(len(hr_offset_min)):
 	hr_offset_end.append('00:' + temp_min_end + ':' + temp_sec)
 
 hr_start_end_times()
-print(hr_offset_start)
-#clip()
+clip_hr()
+
