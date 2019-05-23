@@ -277,13 +277,20 @@ def hr_start_end_times():
 			sec_sum = int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)
 			min_sum = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
 			min_sum_end = min_sum + 1
+			sec_sum_gsr = int(time_temp_gsr[k].second)
+			min_sum_gsr = int(time_temp_gsr[k].minute)
+			min_sum_end_gsr = min_sum_gsr + 1
 			if sec_sum > 59: 
 				sec_sum = sec_sum - 60
 				min_sum = min_sum + 1
 				min_sum_end = min_sum_end + 1
-			sec_sum_gsr = str(sec_sum)
-			min_sum_gsr = str(min_sum)
-			min_sum_end_gsr = str(min_sum_end)
+			if sec_sum_gsr > 59:
+				sec_sum_gsr = sec_sum_gsr - 60
+				min_sum_gsr = min_sum_gsr + 1
+				min_sum_end_gsr = min_sum_end_gsr +1
+			sec_sum_gsr = str(sec_sum_gsr)
+			min_sum_gsr = str(min_sum_gsr)
+			min_sum_end_gsr = str(min_sum_end_gsr)
 			if sec_sum > 9: sec_sum = str(sec_sum)
 			if sec_sum < 10: sec_sum = "0"+str(sec_sum)
 			if min_sum > 9: min_sum = str(min_sum)
@@ -297,8 +304,7 @@ def hr_start_end_times():
 			gsr_start_times_corrected.append("'0:" + min_sum_gsr + ':' + sec_sum_gsr + '.0')
 			gsr_end_times_corrected.append("'0:" + min_sum_end_gsr + ':' + sec_sum_gsr + '.0')
 
-	print(gsr_start_times_corrected)
-	print(gsr_end_times_corrected)
+
 
 ############################################################################################################################	
 #============================================================================================================================
@@ -348,17 +354,23 @@ def clip_gsr():
 	clip_flag = 0 
 	wb = openpyxl.load_workbook(clip_file_name)
 
-	print(originalFile_gsr[10][0])
-	print(gsr_start_times[2])
+	
+	row_count = 2
 
-	wb.worksheets[0].cell(row=1, column=4).value =	"Time_gsr"
-	wb.worksheets[0].cell(row=1, column=5).value =	"value_gsr"
-
-	for i, row in enumerate(originalFile_gsr):
-		for j, col in enumerate(row):
-			# if i == 7:  wb.worksheets[0].cell(row=i, column=j+4).value = originalFile_gsr[i][j]
-			for field in row:
-				if gsr_start_times[2] in field:  print("it recognizes it")
+	for h in range(len(gsr_start_times_corrected)-1):
+		wb.worksheets[h].cell(row=1, column=4).value =	"Time_gsr"
+		wb.worksheets[h].cell(row=1, column=5).value =	"value_gsr"
+		for i, row in enumerate(originalFile_gsr):
+			for j, col in enumerate(row):
+				# if i == 7:  wb.worksheets[0].cell(row=i, column=j+4).value = originalFile_gsr[i][j]
+				for field in row:
+					#if gsr_start_times_corrected[2] in field:  print(i)
+					if gsr_start_times_corrected[h] in field: clip_flag = 1
+					if gsr_end_times_corrected[h] in field: clip_flag = 0
+					if clip_flag == 1: 
+						wb.worksheets[h].cell(row=row_count, column=j+4).value = originalFile_gsr[i][j]
+			if clip_flag == 1:  row_count += 1
+		row_count = 2
 
 	wb.save(clip_file_name)
 
