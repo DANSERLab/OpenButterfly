@@ -36,6 +36,8 @@ date = []							# Date of session
 # number_of_recordings = []			# The number of Muse/Neulog recordings
 recording_transitions = []			# Array for each "part".  Shows transitions from recording 1 to recording 2 to recording 3, etc
 muse_start_time = []				# Array of all the begining times to clip
+muse_start_times = []
+muse_end_times = []
 
 
 ############################################################################################################################	
@@ -206,11 +208,14 @@ def heart_rate_clock_start_time(name,session):
 def hr_find_offsets(input_file):
 	# Next get start minute of Muse which should be later than the Heart rate.  
 	# Need to take care of cases where there are multiple muse recordings
+	global originalFile_muse
 	with open(input_file, 'rb') as csvFile:
     		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
     		originalFile_muse = list(reader)	
 
     	muse_start_time.append(originalFile_muse[1][0])
+
+    	global muse_date, muse_hour, muse_min, muse_sec, muse_decisec
 
     	muse_hour, muse_min, muse_sec = muse_start_time[-1].split(":")
     	muse_date, muse_hour = muse_hour.split(" ")
@@ -273,6 +278,8 @@ def hr_start_end_times():
 			hr_end_times.append('X')
 			gsr_start_times_corrected.append('X')
 			gsr_end_times_corrected.append('X')
+			muse_start_times.append('X')
+			muse_end_times.append('X')
 		else:
 			sec_sum = int(time_temp_hr[offset_index].second)+int(time_temp_gsr[k].second)
 			min_sum = int(time_temp_hr[offset_index].minute)+int(time_temp_gsr[k].minute)
@@ -280,6 +287,11 @@ def hr_start_end_times():
 			sec_sum_gsr = int(time_temp_gsr[k].second)
 			min_sum_gsr = int(time_temp_gsr[k].minute)
 			min_sum_end_gsr = min_sum_gsr + 1
+			sec_sum_muse = int(time_temp_gsr[k].second) + muse_sec
+			min_sum_muse = int(time_temp_gsr[k].minute) + muse_min
+			min_sum_end_muse = min_sum_muse + 1
+			hour_sum_muse = muse_hour
+			hour_sum_end_muse = muse_hour
 			if sec_sum > 59: 
 				sec_sum = sec_sum - 60
 				min_sum = min_sum + 1
@@ -287,22 +299,41 @@ def hr_start_end_times():
 			if sec_sum_gsr > 59:
 				sec_sum_gsr = sec_sum_gsr - 60
 				min_sum_gsr = min_sum_gsr + 1
-				min_sum_end_gsr = min_sum_end_gsr +1
+				min_sum_end_gsr = min_sum_end_gsr + 1
+			if sec_sum_muse > 59: 
+				sec_sum_muse = sec_sum_muse - 60
+				min_sum_muse = min_sum_muse + 1
+				min_sum_end_muse = min_sum_end_muse + 1
+			if min_sum_muse > 59: 
+				min_sum_muse = min_sum_muse - 60
+				hour_sum_muse = hour_sum_muse + 1
+				hour_sum_end_muse = hour_sum_end_muse + 1
 			sec_sum_gsr = str(sec_sum_gsr)
 			min_sum_gsr = str(min_sum_gsr)
 			min_sum_end_gsr = str(min_sum_end_gsr)
+			hour_sum_muse = str(hour_sum_muse)
+			hour_sum_end_muse = str(hour_sum_end_muse)
 			if sec_sum > 9: sec_sum = str(sec_sum)
 			if sec_sum < 10: sec_sum = "0"+str(sec_sum)
 			if min_sum > 9: min_sum = str(min_sum)
 			if min_sum < 10: min_sum = '0' + str(min_sum)
 			if min_sum_end > 9: min_sum_end = str(min_sum_end)
 			if min_sum_end < 10: min_sum_end = '0' + str(min_sum_end)
+			if sec_sum_muse > 9: sec_sum_muse = str(sec_sum_muse)
+			if sec_sum_muse < 10: sec_sum_muse = "0"+str(sec_sum_muse)
+			if min_sum_muse > 9: min_sum_muse = str(min_sum_muse)
+			if min_sum_muse < 10: min_sum_muse = '0' + str(min_sum_muse)
+			if min_sum_end_muse > 9: min_sum_end_muse = str(min_sum_end_muse)
+			if min_sum_end_muse < 10: min_sum_end_muse = '0' + str(min_sum_end_muse)
 
 			hr_start_times.append('00:' + min_sum + ':' +  sec_sum)
 			hr_end_times.append('00:' + min_sum_end + ':' + sec_sum)
 
 			gsr_start_times_corrected.append("'0:" + min_sum_gsr + ':' + sec_sum_gsr + '.0')
 			gsr_end_times_corrected.append("'0:" + min_sum_end_gsr + ':' + sec_sum_gsr + '.0')
+
+			muse_start_times.append(hour_sum_muse + ':' + min_sum_muse + ':' + sec_sum_muse)
+			muse_end_times.append(hour_sum_end_muse + ':' + min_sum_end_muse + ':' + sec_sum_muse)
 
 
 
@@ -375,6 +406,22 @@ def clip_gsr():
 	wb.save(clip_file_name)
 
 	
+############################################################################################################################	
+#============================================================================================================================
+
+# FUNCTION:
+def clip_muse():
+
+	print(gsr_start_times)
+
+
+	# get 1st time of muse then add gsr time to muse
+
+	check = '16:10'
+
+	#for i, row in enumerate(originalFile_muse):		
+			#for field in row:  
+				 #if check in field: print('it sees the mother fucker...')
 
 
 
@@ -453,4 +500,7 @@ for i in range(len(hr_offset_min)):
 hr_start_end_times()
 clip_hr()
 clip_gsr()
+clip_muse()
+print(muse_start_times)
+print(muse_end_times)
 
