@@ -13,6 +13,9 @@ import xlsxwriter
 from datetime import datetime
 import openpyxl
 from openpyxl import Workbook
+import pandas as pd 
+import re
+import fnmatch
 
 #============================================================================================================================
 #					Variable Block
@@ -258,7 +261,7 @@ def hr_find_offsets(input_file):
 #============================================================================================================================
 
 # FUNCTION:  Need to add the offsets to each of the times from gsr_start_times to get hr_end_time
-def hr_start_end_times():
+def start_end_times():
 	time_temp_hr = []		#local arrays to put in "clock" format
 	time_temp_gsr = []
 
@@ -361,6 +364,7 @@ def clip_hr():
 				if clip_flag == 1: 
 					# ss.append(row)
 					wb.worksheets[h].append(row)
+					clip_flag = 0
 
 	wb.save(clip_file_name)
 
@@ -412,7 +416,7 @@ def clip_gsr():
 # FUNCTION:
 def clip_muse():
 
-	print(gsr_start_times)
+	print(muse_start_times)
 
 
 	# get 1st time of muse then add gsr time to muse
@@ -422,6 +426,43 @@ def clip_muse():
 	#for i, row in enumerate(originalFile_muse):		
 			#for field in row:  
 				 #if check in field: print('it sees the mother fucker...')
+
+	clip_flag = 0 
+	wb = openpyxl.load_workbook(clip_file_name)
+
+	
+	row_count = 2
+
+	for h in range(len(muse_start_times)-1):
+		for i, row in enumerate(originalFile_muse):
+			for j, col in enumerate(row):
+				if i == 1:  
+					wb.worksheets[0].cell(row=i, column=j+6).value = originalFile_muse[0][j]
+				for field in row:
+					if muse_start_times[h] in field: clip_flag = 1
+					if muse_end_times[h] in field: clip_flag = 0
+					if clip_flag == 1: 
+						wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse[i][j]
+			if clip_flag == 1:  row_count += 1
+		row_count = 2
+
+	wb.save(clip_file_name)
+
+
+############################################################################################################################	
+#============================================================================================================================
+
+# FUNCTION: get game play data file paths
+def game_file_paths():
+	try:  
+		arrayGame = fnmatch.filter(os.listdir(fileDir+'game/')), '*'+subject+'*.csv')
+		print('all game files for ' + subject)
+		print(arrayGame)
+		dfGame = pd.read_csv(fileDir+'game/'+ arrayGame[0])
+		print(dfGSR.shape)
+
+	except:
+		print('no files for ' + subject)
 
 
 
@@ -497,10 +538,11 @@ for i in range(len(hr_offset_min)):
 		temp_min_end = str(hr_offset_min[i]+1)
 	hr_offset_end.append('00:' + temp_min_end + ':' + temp_sec)
 
-hr_start_end_times()
+start_end_times()
 clip_hr()
 clip_gsr()
 clip_muse()
-print(muse_start_times)
-print(muse_end_times)
+print(originalFile_muse[0][0])
+print(originalFile_muse[0][1])
+
 
