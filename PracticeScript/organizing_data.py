@@ -41,8 +41,11 @@ recording_transitions = []			# Array for each "part".  Shows transitions from re
 muse_start_time = []				# Array of all the begining times to clip
 muse_start_times = []
 muse_end_times = []
+ex_list_session1to6 = ['FAR', 'SAR', 'SR','FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
+ex_list_session7to12 = ['ExR', 'AbdR', 'MxdPr', 'MxdCr', 'ExR', 'AbdR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
 
-
+trial_list_session1to6 = ['Trial1', 'Trial1', 'Trial1', 'Trial2', 'Trial2', 'Trial2', 'Trial3', 'Trial3', 'Trial3']
+tiral_list_session7to12 = ['Trial1','Trial1','Trial1','Trial1','Trial2', 'Trial2', 'Trial2', 'Trial2','Trial1','Trial1','Trial1', 'Trial2', 'Trial2', 'Trial2']
 ############################################################################################################################	
 #============================================================================================================================
 #					Function Block
@@ -455,14 +458,15 @@ def clip_muse():
 # FUNCTION: get game play data file paths
 def game_file_paths():
 	try:  
-		arrayGame = fnmatch.filter(os.listdir(fileDir+'game/')), '*'+subject+'*.csv')
+		arrayGame = fnmatch.filter(os.listdir(fileDir+'/game/'+session), ex_list_session1to6[0] +'*'+subject+'*'+trial_list_session1to6[6]+'*'+'.csv')
 		print('all game files for ' + subject)
 		print(arrayGame)
-		dfGame = pd.read_csv(fileDir+'game/'+ arrayGame[0])
-		print(dfGSR.shape)
+		#dfGame = pd.read_csv(fileDir+'game/Session1/'+ arrayGame[0])
+		#print(dfGSR.shape)
 
 	except:
 		print('no files for ' + subject)
+
 
 
 
@@ -540,9 +544,8 @@ for i in range(len(hr_offset_min)):
 
 start_end_times()
 clip_hr()
-clip_gsr()
-clip_muse()
-print(originalFile_muse[0][0])
-print(originalFile_muse[0][1])
+#clip_gsr()
+#clip_muse()
+game_file_paths()
 
 
