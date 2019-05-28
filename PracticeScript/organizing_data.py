@@ -23,7 +23,7 @@ import fnmatch
 
 
 subject="Mike"						# Subject's name as formated in File name
-session="Session1"					# Session number to check
+session="Session8"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
@@ -381,7 +381,7 @@ def clip_hr():
 				if clip_flag == 1: 
 					# ss.append(row)
 					wb.worksheets[h].append(row)
-					clip_flag = 0
+					#clip_flag = 0
 
 	wb.save(clip_file_name)
 
@@ -433,9 +433,6 @@ def clip_gsr():
 # FUNCTION:
 def clip_muse():
 
-	print(muse_start_times)
-
-
 	# get 1st time of muse then add gsr time to muse
 
 	check = '16:10'
@@ -454,7 +451,7 @@ def clip_muse():
 		for i, row in enumerate(originalFile_muse):
 			for j, col in enumerate(row):
 				if i == 1:  
-					wb.worksheets[0].cell(row=i, column=j+6).value = originalFile_muse[0][j]
+					wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse[0][j]
 				for field in row:
 					if muse_start_times[h] in field: clip_flag = 1
 					if muse_end_times[h] in field: clip_flag = 0
@@ -471,17 +468,52 @@ def clip_muse():
 
 # FUNCTION: get game play data file paths
 def game_file_paths():
-	print(trial_list_session)
-	print (len(trial_list_session))
+	global array_game
 	for i in range(len(trial_list_session)): 
 		temp_path = fnmatch.filter(os.listdir(fileDir+'/game/'+session), ex_list_session[i] +'*'+subject+'*'+trial_list_session[i]+'*'+'.csv')
+		
 		if not temp_path:
 			temp_path = "X"
-		print('all game files for ' + subject)
+
 		array_game.append(temp_path)
-		print(array_game[i])
 
+############################################################################################################################	
+#============================================================================================================================
 
+# FUNCTION: get game play data file paths
+def clip_game():
+	clip_flag = 1 
+	wb = openpyxl.load_workbook(clip_file_name)
+
+	for i in range(len(array_game)):
+		if array_game[i][0] != 'X':
+			file_game = os.path.join(fileDir, 'game/', session, array_game[i][0])
+			with open(file_game, 'rb') as csvFile:
+		    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+		    		originalFile_game = list(reader)
+		    	csvFile.close()
+
+		
+		row_count = 1
+
+		for h in range(len(array_game)):
+			for i, row in enumerate(originalFile_game):
+				for j, col in enumerate(row):
+					if clip_flag == 1: 
+						wb.worksheets[h+1].cell(row=row_count, column=j+45).value = originalFile_game[i][j]
+					for field in row:
+						if '60.' in field: clip_flag = 0					
+				if clip_flag == 1 and i>2:  row_count += 1
+			row_count = 1
+
+	wb.save(clip_file_name)
+
+	# for i in range(len(array_game)):
+	# 	with open(array_game[i], 'rU') as csvFile:
+ #    			reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+ #    			originalFile_game = list(reader)
+ #    			print(i)
+ #    	csvFile.close()
 
 
 ############################################################################################################################	
@@ -558,8 +590,9 @@ for i in range(len(hr_offset_min)):
 
 start_end_times()
 clip_hr()
-#clip_gsr()
-#clip_muse()
+clip_gsr()
+clip_muse()
 game_file_paths()
+clip_game()
 
 
