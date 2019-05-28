@@ -41,9 +41,13 @@ recording_transitions = []			# Array for each "part".  Shows transitions from re
 muse_start_time = []				# Array of all the begining times to clip
 muse_start_times = []
 muse_end_times = []
+array_game = []
+
+ex_list_session = []
 ex_list_session1to6 = ['FAR', 'SAR', 'SR','FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
 ex_list_session7to12 = ['ExR', 'AbdR', 'MxdPr', 'MxdCr', 'ExR', 'AbdR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
 
+trial_list_session = []
 trial_list_session1to6 = ['Trial1', 'Trial1', 'Trial1', 'Trial2', 'Trial2', 'Trial2', 'Trial3', 'Trial3', 'Trial3']
 tiral_list_session7to12 = ['Trial1','Trial1','Trial1','Trial1','Trial2', 'Trial2', 'Trial2', 'Trial2','Trial1','Trial1','Trial1', 'Trial2', 'Trial2', 'Trial2']
 ############################################################################################################################	
@@ -132,6 +136,8 @@ def make_start_time_array(name,session):
 	# fill the array with the clock times and fill the array with neulog times
 	# so there should be 2 arrays at the end, of different length
 
+	global trial_list_session
+	global ex_list_session
 
 	
 
@@ -159,6 +165,9 @@ def make_start_time_array(name,session):
 				clock_start_times.append(originalFile_time[j][1]) 
 				j += 1
 
+			ex_list_session = ['FAR', 'SAR', 'SR','FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
+			trial_list_session = ['Trial1', 'Trial1', 'Trial1', 'Trial2', 'Trial2', 'Trial2', 'Trial3', 'Trial3', 'Trial3']
+
 
  		elif session in ["Session7","Session8","Session9","Session10","Session11","Session12"]:
 			# make speciic cells of a column into an array
@@ -172,6 +181,11 @@ def make_start_time_array(name,session):
 			while j <= 23:
 				clock_start_times.append(originalFile_time[j][1]) 
 				j += 1
+
+			ex_list_session = ['ExR', 'AbdR', 'MxdPr', 'MxdCr', 'ExR', 'AbdR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
+			trial_list_session = ['Trial1','Trial1','Trial1','Trial1','Trial2', 'Trial2', 'Trial2', 'Trial2','Trial1','Trial1','Trial1', 'Trial2', 'Trial2', 'Trial2']
+			
+
 
 		
 
@@ -457,15 +471,15 @@ def clip_muse():
 
 # FUNCTION: get game play data file paths
 def game_file_paths():
-	try:  
-		arrayGame = fnmatch.filter(os.listdir(fileDir+'/game/'+session), ex_list_session1to6[0] +'*'+subject+'*'+trial_list_session1to6[6]+'*'+'.csv')
+	print(trial_list_session)
+	print (len(trial_list_session))
+	for i in range(len(trial_list_session)): 
+		temp_path = fnmatch.filter(os.listdir(fileDir+'/game/'+session), ex_list_session[i] +'*'+subject+'*'+trial_list_session[i]+'*'+'.csv')
+		if not temp_path:
+			temp_path = "X"
 		print('all game files for ' + subject)
-		print(arrayGame)
-		#dfGame = pd.read_csv(fileDir+'game/Session1/'+ arrayGame[0])
-		#print(dfGSR.shape)
-
-	except:
-		print('no files for ' + subject)
+		array_game.append(temp_path)
+		print(array_game[i])
 
 
 
