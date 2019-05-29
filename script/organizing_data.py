@@ -512,7 +512,7 @@ def clip_game():
 		for h in range(len(array_game)):
 			for i, row in enumerate(originalFile_game):
 				for j, col in enumerate(row):
-					if clip_flag == 1 and j < 26: 
+					if clip_flag == 1 and j < 25: 
 						wb.worksheets[h+1].cell(row=row_count, column=j+45).value = originalFile_game[i][j]
 					for field in row:
 						if '60.' in field: clip_flag = 0					
