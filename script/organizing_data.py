@@ -33,7 +33,7 @@ hr_offset_end = []
 hr_start_times = []					# Array of all the beginning times to clip
 hr_end_times = []					# Array of all the end times to clip
 gsr_start_times = []				# Array of all the beginning times to clip'
-gsr_end_times_corrected = ["'0:1:0.0"]
+gsr_end_times_corrected = ["'0:1:0.0"]	# Initialize with baseline values since it't just the first 60 sec
 gsr_start_times_corrected = ["'-0:0:0.0"]
 date = []							# Date of session
 # number_of_recordings = []			# The number of Muse/Neulog recordings
@@ -57,12 +57,11 @@ tiral_list_session7to12 = ['Trial1','Trial1','Trial1','Trial1','Trial2', 'Trial2
 #############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION:  make excel workbook with correct name and sheet names
-# I'm working on this section right now
+# FUNCTION:	Make excel workbook with correct name and sheet names
+#			This will over write any workbook with the same name.
 
 def make_excel_book(name,session):
 	global clip_file_name
-	#global sheet_names 
 
 	if session in ["Session1", "Session2", "Session3", "Session4", "Session5", "Session6"]:
 		# Workbook() takes one, non-optional, argument  
@@ -125,34 +124,25 @@ def make_excel_book(name,session):
 #############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION:  Start Times ./start_time/Session1/time_Mike_2019-04-23.csv
-	#make array of start times
+# FUNCTION:  Start Times ./start_time/Session1/time_Mike.csv
+	#	make array of start times heart rate, gsr, and muse
 	# csv file with column 0 of HR,Muse/GSR,Baseline,Trial1, Trial 2... 9, Survey, ROM
 	#				column 1 of Clock time of the form HOUR:MIN
 	#				column 2 of GSR time
 def make_start_time_array(name,session):
-
-	# his function will be passed a name (Mike) and the session number (Session1)
-	# fill the array with the clock times and fill the array with neulog times
-	# so there should be 2 arrays at the end, of different length
-
 	global trial_list_session
 	global ex_list_session
 
-	
-
 	with open(file_time, 'rb') as csvFile:
     		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
-    		originalFile_time = list(reader)								# make a list of spread sheet, need a list to index to a specfic cell and overwrite old spread sheet
+    		originalFile_time = list(reader)						# make a list of spread sheet, need a list to index to a specfic cell and overwrite old spread sheet
 	
-		
-    	# loop for making a column an array
-		#for row in originalFile:
-		#	gsr_start_times.append(row[2])
+		# get number of recordings
 		global number_of_recordings
 		date.append(originalFile_time[2][1])
 		number_of_recordings = int(originalFile_time[3][1])
 
+		# this section builds the gsr start times, rec transitions and exercise/trial list based on the session that is being examined
 		if session in ["Session1","Session2","Session3","Session4","Session5","Session6"]:
 			i = 7
 			while i <= 17:
@@ -185,29 +175,20 @@ def make_start_time_array(name,session):
 			ex_list_session = ['ExR', 'AbdR', 'MxdPr', 'MxdCr', 'ExR', 'AbdR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
 			trial_list_session = ['Trial1','Trial1','Trial1','Trial1','Trial2', 'Trial2', 'Trial2', 'Trial2','Trial1','Trial1','Trial1', 'Trial2', 'Trial2', 'Trial2']
 			
-
-
-		
-
-
-		# Get heart 	rate start times and muse start times.  Figure out differences 
-
-
-
 	 	csvFile.close()
 
 
 #############################################################################################################################			
 #============================================================================================================================
 
-# FUNCTION: Heart Rate ./heart_rate/Session1/HR_Mike_Session1_2019-04-23.csv
+# FUNCTION: Heart Rate ./heart_rate/Session1/HR_Mike.csv
 def heart_rate_clock_start_time(name,session):
 
 	# First get the global start time for the Heart Rate Recording and break into hours,min, and sec
 	global originalFile_HR
 	with open(file_HR, 'rb') as csvFile:
     		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
-    		originalFile_HR = list(reader)								# make a list of spread sheet, need a list to index to a specfic cell and overwrite old spread sheet
+    		originalFile_HR = list(reader)							# make a list of spread sheet, need a list to index to a specfic cell and overwrite old spread sheet
 	
 	hr_clock_start_time.append(originalFile_HR[1][3])
 
@@ -218,8 +199,6 @@ def heart_rate_clock_start_time(name,session):
 	hr_sec = int(hr_sec)
 	
 	csvFile.close()
-
-
 
 ############################################################################################################################		
 #============================================================================================================================
@@ -235,6 +214,7 @@ def hr_find_offsets(input_file):
 
     	muse_start_time.append(originalFile_muse[1][0])
 
+    	# break the muse start time into hour, min and seconds
     	global muse_date, muse_hour, muse_min, muse_sec, muse_decisec
 
     	muse_hour, muse_min, muse_sec = muse_start_time[-1].split(":")
@@ -251,10 +231,11 @@ def hr_find_offsets(input_file):
     	temp_min = muse_min+1
     	if temp_min>59:
     		temp_min = temp_min - 60
-    		temp_hour += 1
-    	
+    		temp_hour = temp_hour + 1
+
+    	# get the initial start time for the baseline
     	muse_start_times.append(str(muse_hour) + ':' + str(muse_min) + ':' + str(muse_sec))
-	muse_end_times.append(str(temp_hour) + ':' + str(temp_min) + ':' + str(muse_sec))
+    	muse_end_times.append(str(temp_hour) + ':' + str(temp_min) + ':' + str(muse_sec))
 
     	# If both muse and HR hours match then just subtract HR min and sec from Muse min and sec to get offse
     	# If muse and HR hours differ subtract HR min and sec from 60 then add to Muse min and sec
@@ -286,12 +267,10 @@ def hr_find_offsets(input_file):
 
 # FUNCTION:  Need to add the offsets to each of the times from gsr_start_times to get hr_end_time
 def start_end_times():
-	time_temp_hr = []		#local arrays to put in "clock" format
+	
+	#local arrays to put in "clock" format
+	time_temp_hr = []		
 	time_temp_gsr = []
-
-	# temp = hr_offset_min + 1
-	# hr_start_times.append('00:' + hr_offset_min + ':' +  hr_offset_sec)
-	# hr_end_times.append('00:' + temp + ':' + hr_offset_sec)
 
 	for i in range(len(hr_offset_start)):
 		time_temp_hr.append(datetime.strptime(hr_offset_start[i], '%H:%M:%S').time())
@@ -301,7 +280,7 @@ def start_end_times():
 		else:
 			time_temp_gsr.append(datetime.strptime(gsr_start_times[j], '%H:%M:%S').time())
 	
-	# This large for loop will create with start and stop arrays in the correct format, accounts for sec sum>59
+	# This large for loop will create with start and stop arrays in the correct format, accounts for sec sum>59, or if time is missing indicated by 'X'
 	for k in range(len(gsr_start_times)):
 		offset_index = int(recording_transitions[k]) - 1
 		if gsr_start_times[k] == 'X': 
@@ -359,6 +338,7 @@ def start_end_times():
 			if min_sum_end_muse > 9: min_sum_end_muse = str(min_sum_end_muse)
 			if min_sum_end_muse < 10: min_sum_end_muse = '0' + str(min_sum_end_muse)
 
+			#Creating each start and stop time arrays that are used to search for the correct rows to start and stop at
 			hr_start_times.append('00:' + min_sum + ':' +  sec_sum)
 			hr_end_times.append('00:' + min_sum_end + ':' + sec_sum)
 
@@ -373,17 +353,12 @@ def start_end_times():
 ############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION:  HR
+# FUNCTION:  append the correct heart rate times to each sheet
 def clip_hr():
+	# flag is high after start time and low after end time
 	clip_flag = 0
 
-	# This block makes a writer for the excel book
 	wb = openpyxl.load_workbook(clip_file_name)
-	#print(wb.sheetnames[0])
-	# ss = wb.worksheets[0]
-
-	# for i, row in enumerate(originalFile_HR):
-	# 	ss.append(row)
 
 	for h in range(len(hr_start_times)-1):
 		for i, row in enumerate(originalFile_HR):
@@ -392,21 +367,14 @@ def clip_hr():
 				if hr_start_times[h] in field: clip_flag = 1
 				if hr_end_times[h] in field: clip_flag = 0
 				if clip_flag == 1: 
-					# ss.append(row)
 					wb.worksheets[h].append(row)
-					#clip_flag = 0
 
 	wb.save(clip_file_name)
-
-			# for j, column in enumerate(row):
-			# 	if lab_dir in column:
-			# 		lab_dir_column = j
-			# 		column_list.append(j)
 
 ############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION:
+# FUNCTION:	This function clips the appropriate rows of the gsr column to the correct sheet of the excel work book
 def clip_gsr():
 	global originalFile_gsr
 	with open(file_gsr, 'rU') as csvFile:
@@ -443,17 +411,8 @@ def clip_gsr():
 ############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION:
+# FUNCTION:	This function clips the appropriate rows of the muse to the correct sheet of the excel work book
 def clip_muse():
-
-	# get 1st time of muse then add gsr time to muse
-
-	check = '16:10'
-
-	#for i, row in enumerate(originalFile_muse):		
-			#for field in row:  
-				 #if check in field: print('it sees the mother fucker...')
-
 	clip_flag = 0 
 	wb = openpyxl.load_workbook(clip_file_name)
 
@@ -479,7 +438,7 @@ def clip_muse():
 ############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION: get game play data file paths
+# FUNCTION: get game play data file paths and store in array
 def game_file_paths():
 	global array_game
 	for i in range(len(trial_list_session)): 
@@ -493,7 +452,8 @@ def game_file_paths():
 ############################################################################################################################	
 #============================================================================================================================
 
-# FUNCTION: get game play data file paths
+# FUNCTION:	This function clips the appropriate rows of the game file to the correct sheet of the excel work book
+
 def clip_game():
 	clip_flag = 1 
 	wb = openpyxl.load_workbook(clip_file_name)
@@ -521,30 +481,6 @@ def clip_game():
 			clip_flag = 1
 
 	wb.save(clip_file_name)
-
-	# for i in range(len(array_game)):
-	# 	with open(array_game[i], 'rU') as csvFile:
- #    			reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
- #    			originalFile_game = list(reader)
- #    			print(i)
- #    	csvFile.close()
-
-
-############################################################################################################################	
-#============================================================================================================================
-
-# FUNCTION: Muse ./muse/Session1/muse_Mike_Session1_2019-04-23.csv
-# This function should be take a singular start time (not an array), copy the appropiate 
-# 60 seconds of data, and append it to the sheet of the excel book.  
-# The time to beging will be a string you can search for in the Muse file.
-
-#def clip_(input_file, file_to_paste_to, sheet_name, time_to_begin_at)
-
-############################################################################################################################		
-#============================================================================================================================
-
-# FUNCTION: GSR ./gsr/Session1/gsr_Mike_Session1
-
 
 
 
@@ -578,10 +514,11 @@ make_start_time_array(subject,session)
 heart_rate_clock_start_time(subject,session)
 
 # This for loop finds Heart Rate start time offsets for any number of recordings.
+# Think there is an error here --> should be if recording number != 1 then run this loop for each recording 
 for i in range(len(recording_transitions)): # should be length ofrecording transitions not number
-	if i == 1:
+	if i == 0:
 		hr_find_offsets(file_muse)
-	if i > 1 and recording_transitions[i] > recording_transitions[i-1]:
+	if i > 0 and recording_transitions[i] > recording_transitions[i-1]:
 		file_muse_updated = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + recording_transitions[i] + '.csv')
 		hr_find_offsets(file_muse_updated) # Need to make sure there are matching parts for each recording
 
