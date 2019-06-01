@@ -42,10 +42,14 @@ muse_start_time = []				# Array of all the begining times to clip
 muse_start_times = []
 muse_end_times = []
 array_game = []
+file_array_muse = []
+file_array_gsr = []
+
+
 
 ex_list_session = []
 ex_list_session1to6 = ['FAR', 'SAR', 'SR','FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
-ex_list_session7to12 = ['ExR', 'AbdR', 'MxdPr', 'MxdCr', 'ExR', 'AbdR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
+ex_list_session7to12 = ['ExR', 'AbR', 'MxdPr', 'MxdCr', 'ExR', 'AbR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
 
 trial_list_session = []
 trial_list_session1to6 = ['Trial1', 'Trial1', 'Trial1', 'Trial2', 'Trial2', 'Trial2', 'Trial3', 'Trial3', 'Trial3']
@@ -97,11 +101,11 @@ def make_excel_book(name,session):
 		# Sheet1, Sheet2 etc., but we can also specify a name. 
 		worksheet = workbook.add_worksheet("baseline") 
 		worksheet = workbook.add_worksheet("ExR1") 
-		worksheet = workbook.add_worksheet("AbdR1") 
+		worksheet = workbook.add_worksheet("AbR1") 
 		worksheet = workbook.add_worksheet("MxdPr1") 
 		worksheet = workbook.add_worksheet("MxdCr1") 
 		worksheet = workbook.add_worksheet("ExR2") 
-		worksheet = workbook.add_worksheet("AbdR2") 
+		worksheet = workbook.add_worksheet("AbR2") 
 		worksheet = workbook.add_worksheet("MxdPr2") 
 		worksheet = workbook.add_worksheet("MxdCr2")
 		worksheet = workbook.add_worksheet("FAR1") 
@@ -112,7 +116,7 @@ def make_excel_book(name,session):
 		worksheet = workbook.add_worksheet("SR2") 
 		
 		clip_file_name = 'clipped_' + name + '_' + session + '.xlsx'  
-		#sheet_names = ["baseline", "ExR1", "AbdR1", "MxdPr1", "MxdCr1", "ExR2", "AbdR2", "MxdPr2", "MxdCr2", "FAR1","SAR1", "SR1", "FAR2", "SAR2", "SR2"]
+		#sheet_names = ["baseline", "ExR1", "AbR1", "MxdPr1", "MxdCr1", "ExR2", "AbR2", "MxdPr2", "MxdCr2", "FAR1","SAR1", "SR1", "FAR2", "SAR2", "SR2"]
 		# Finally, close the Excel file 
 		# via the close() method. 
 		workbook.close() 
@@ -172,7 +176,7 @@ def make_start_time_array(name,session):
 				clock_start_times.append(originalFile_time[j][1]) 
 				j += 1
 
-			ex_list_session = ['ExR', 'AbdR', 'MxdPr', 'MxdCr', 'ExR', 'AbdR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
+			ex_list_session = ['ExR', 'AbR', 'MxdPr', 'MxdCr', 'ExR', 'AbR', 'MxdPr', 'MxdCr', 'FAR', 'SAR', 'SR','FAR', 'SAR', 'SR']
 			trial_list_session = ['Trial1','Trial1','Trial1','Trial1','Trial2', 'Trial2', 'Trial2', 'Trial2','Trial1','Trial1','Trial1', 'Trial2', 'Trial2', 'Trial2']
 			
 	 	csvFile.close()
@@ -457,6 +461,7 @@ def game_file_paths():
 def clip_game():
 	clip_flag = 1 
 	wb = openpyxl.load_workbook(clip_file_name)
+	check = '60.0'
 
 	for i in range(len(array_game)):
 		if array_game[i][0] != 'X':
@@ -465,20 +470,29 @@ def clip_game():
 		    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
 		    		originalFile_game = list(reader)
 		    	csvFile.close()
+		
+		row_count = 1
+		clip_flag = 1
 
+		print(i)
+
+		for k, row in enumerate(originalFile_game):
+			for j, col in enumerate(row):
+				for time in row:
+					if clip_flag == 1 and j < 25 and k<3000: 
+						wb.worksheets[i+1].cell(row=row_count, column=j+45).value = originalFile_game[k][j]
+					if check in time and k>1500: 
+						clip_flag = 0
+						break #clip_flag = 0
+					#if '0.0' in field: clip_flag = 1					
+			if clip_flag == 1 and k>2:  
+				row_count += 1
+
+			if clip_flag == 0:
+				break
 		
 		row_count = 1
 
-		for h in range(len(array_game)):
-			for i, row in enumerate(originalFile_game):
-				for j, col in enumerate(row):
-					if clip_flag == 1 and j < 25: 
-						wb.worksheets[h+1].cell(row=row_count, column=j+45).value = originalFile_game[i][j]
-					for field in row:
-						if '60.' in field: clip_flag = 0					
-				if clip_flag == 1 and i>2:  row_count += 1
-			row_count = 1
-			clip_flag = 1
 
 	wb.save(clip_file_name)
 
@@ -513,11 +527,16 @@ make_excel_book(subject,session)
 make_start_time_array(subject,session)
 heart_rate_clock_start_time(subject,session)
 
+# Realized for mulitple recordings there are multiple parts for muse and gsr. Rather than changing a bunch of code right now going to make arrays 
+# for the file paths.
+
+
 # This for loop finds Heart Rate start time offsets for any number of recordings.
 # Think there is an error here --> should be if recording number != 1 then run this loop for each recording 
 for i in range(len(recording_transitions)): # should be length ofrecording transitions not number
 	if i == 0:
 		hr_find_offsets(file_muse)
+		#file_array_muse.append()
 	if i > 0 and recording_transitions[i] > recording_transitions[i-1]:
 		file_muse_updated = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + recording_transitions[i] + '.csv')
 		hr_find_offsets(file_muse_updated) # Need to make sure there are matching parts for each recording
@@ -538,15 +557,20 @@ for i in range(len(hr_offset_min)):
 	if hr_offset_min[i]>8:
 		temp_min_end = str(hr_offset_min[i]+1)
 	hr_offset_end.append('00:' + temp_min_end + ':' + temp_sec)
-
-	hr_start_times.append('00:' + temp_min + ':' + temp_sec)
-	hr_end_times.append('00:' + temp_min_end + ':' + temp_sec)
+	if i == 0:	#This if statement does the baseline.  Appends just the initial offset to the heart rate start and end times
+		hr_start_times.append(str(hr_offset_start))
+		hr_end_times.append(str(hr_offset_end))
 
 start_end_times()
 clip_hr()
-clip_gsr()
-clip_muse()
-game_file_paths()
-clip_game()
+# clip_gsr()
+# clip_muse()
+# game_file_paths()
+# clip_game()
+# print(hr_offset_start)
+# print(hr_offset_end)
+# print(hr_start_times)
+# print(number_of_recordings)
+#print(array_game[2df][0])
 
 
