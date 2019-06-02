@@ -23,7 +23,7 @@ import fnmatch
 
 
 subject="Paniz"						# Subject's name as formated in File name
-session="Session8"					# Session number to check
+session="Session10"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
@@ -148,7 +148,7 @@ def make_start_time_array(name,session):
 
 		# this section builds the gsr start times, rec transitions and exercise/trial list based on the session that is being examined
 		if session in ["Session1","Session2","Session3","Session4","Session5","Session6"]:
-			i = 7
+			i = 8
 			while i <= 17:
 				gsr_start_times.append(originalFile_time[i][2])
 				recording_transitions.append(originalFile_time[i][3]) 
@@ -238,7 +238,7 @@ def hr_find_offsets(input_file):
     		temp_hour = temp_hour + 1
 
     	# get the initial start time for the baseline
-    	muse_start_times.append(str(muse_hour) + ':' + str(muse_min) + ':' + str(muse_sec))
+    	# muse_start_times.append(str(muse_hour) + ':' + str(muse_min) + ':' + str(muse_sec))
     	muse_end_times.append(str(temp_hour) + ':' + str(temp_min) + ':' + str(muse_sec))
 
     	# If both muse and HR hours match then just subtract HR min and sec from Muse min and sec to get offse
@@ -479,7 +479,7 @@ def clip_game():
 		for k, row in enumerate(originalFile_game):
 			for j, col in enumerate(row):
 				for time in row:
-					if clip_flag == 1 and j < 25 and k<3000: 
+					if clip_flag == 1 and j < 25 and k<6000: 
 						wb.worksheets[i+1].cell(row=row_count, column=j+45).value = originalFile_game[k][j]
 					if check in time and k>1500: 
 						clip_flag = 0
@@ -558,19 +558,22 @@ for i in range(len(hr_offset_min)):
 		temp_min_end = str(hr_offset_min[i]+1)
 	hr_offset_end.append('00:' + temp_min_end + ':' + temp_sec)
 	if i == 0:	#This if statement does the baseline.  Appends just the initial offset to the heart rate start and end times
-		hr_start_times.append(str(hr_offset_start))
-		hr_end_times.append(str(hr_offset_end))
+		hr_start_times.append(str(hr_offset_start[0]))
+		hr_end_times.append(str(hr_offset_end[0]))
 
 start_end_times()
 clip_hr()
-# clip_gsr()
-# clip_muse()
-# game_file_paths()
-# clip_game()
+clip_gsr()
+clip_muse()
+game_file_paths()
+clip_game()
 # print(hr_offset_start)
 # print(hr_offset_end)
 # print(hr_start_times)
 # print(number_of_recordings)
 #print(array_game[2df][0])
+print(hr_offset_start)
+print(hr_start_times)
+print(hr_offset_start[0])
 
 
