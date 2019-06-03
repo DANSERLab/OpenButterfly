@@ -1,0 +1,24 @@
+Name,Simon,,
+Session,7,,
+Date,4/29/19,,
+Number of recordings,2,,
+,global time,GSR time,Recording number if more than 1
+heart rate,12:10:00 PM,,
+range of motion,12:11:00 PM,,
+baseline,12:17:00 PM,,
+Exr #1,12:19:00 PM,0:02:15,1
+AbR #1,12:21:00 PM,0:04:11,1
+MxdPr #1,12:23:00 PM,0:06:31,1
+MxdCr #1,12:25:00 PM,0:08:24,1
+ExR #2,12:27:00 PM,0:10:41,1
+AbR #2,12:29:00 PM,0:12:22,1
+MxdPr #2,12:31:00 PM,0:14:11,1
+MxdCr #2,12:33:00 PM,0:16:37,1
+FAR #1,12:36:00 PM,X,X
+SAR #1,12:39:00 PM,0:00:20,2
+SR #1,12:41:00 PM,0:01:42,2
+FAR #2,12:43:00 PM,0:04:09,2
+SAR #2,12:44:00 PM,0:05:31,2
+SR #2,12:46:00 PM,0:07:01,2
+survey,12:48:00 PM,0:09:20,2
+range of motion,12:57:00 PM,,

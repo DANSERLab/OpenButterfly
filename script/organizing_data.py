@@ -23,7 +23,7 @@ import fnmatch
 
 
 subject="Paniz"						# Subject's name as formated in File name
-session="Session10"					# Session number to check
+session="Session2"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
@@ -33,17 +33,21 @@ hr_offset_end = []
 hr_start_times = []					# Array of all the beginning times to clip
 hr_end_times = []					# Array of all the end times to clip
 gsr_start_times = []				# Array of all the beginning times to clip'
-gsr_end_times_corrected = ["'0:1:0.0"]	# Initialize with baseline values since it't just the first 60 sec
-gsr_start_times_corrected = ["'-0:0:0.0"]
+gsr_end_times_corrected = ["'0:1:0"]	# Initialize with baseline values since it't just the first 60 sec
+gsr_start_times_corrected = ["'-0:0:0"]
 date = []							# Date of session
 # number_of_recordings = []			# The number of Muse/Neulog recordings
-recording_transitions = []			# Array for each "part".  Shows transitions from recording 1 to recording 2 to recording 3, etc
+recording_transitions = ['1']			# Array for each "part".  Shows transitions from recording 1 to recording 2 to recording 3, etc
+recording_transitions_muse = []
 muse_start_time = []				# Array of all the begining times to clip
 muse_start_times = []
 muse_end_times = []
 array_game = []
 file_array_muse = []
 file_array_gsr = []
+muse_min_array = []
+muse_hour_array = []
+muse_sec_array = []
 
 
 
@@ -151,7 +155,8 @@ def make_start_time_array(name,session):
 			i = 8
 			while i <= 17:
 				gsr_start_times.append(originalFile_time[i][2])
-				recording_transitions.append(originalFile_time[i][3]) 
+				recording_transitions.append(originalFile_time[i][3])
+				recording_transitions_muse.append(originalFile_time[i][3])  
 				i += 1
 
 			j = 5
@@ -169,6 +174,7 @@ def make_start_time_array(name,session):
 			while i <= 22:
 				gsr_start_times.append(originalFile_time[i][2])
 				recording_transitions.append(originalFile_time[i][3]) 
+				recording_transitions_muse.append(originalFile_time[i][3])
 				i += 1
 
 			j = 5
@@ -229,6 +235,10 @@ def hr_find_offsets(input_file):
     	muse_sec = int(muse_sec)
     	muse_decisec = int(muse_decisec)
 
+    	muse_hour_array.append(muse_hour)
+    	muse_min_array.append(muse_min)
+    	muse_sec_array.append(muse_sec)
+
     	csvFile.close()
 
     	temp_hour = muse_hour
@@ -238,8 +248,24 @@ def hr_find_offsets(input_file):
     		temp_hour = temp_hour + 1
 
     	# get the initial start time for the baseline
-    	# muse_start_times.append(str(muse_hour) + ':' + str(muse_min) + ':' + str(muse_sec))
-    	muse_end_times.append(str(temp_hour) + ':' + str(temp_min) + ':' + str(muse_sec))
+    	if not muse_start_times:
+    			if muse_sec > 9: t_muse_sec = str(muse_sec)
+    			if muse_sec < 10: t_muse_sec = "0"+str(muse_sec)
+			if muse_min > 9: t_muse_min = str(muse_min)
+			if muse_min < 10: t_muse_min = '0' + str(muse_min)
+			if temp_min > 9: t_temp_min = str(temp_min)
+			if temp_min < 10: t_temp_min = '0' + str(temp_min)
+			if muse_hour > 9: t_muse_hour = str(muse_hour)
+			if muse_hour < 10: t_muse_hour = '0' + str(muse_hour)
+			if temp_hour > 9: t_temp_hour = str(temp_hour)
+			if temp_hour < 10: t_temp_hour = '0' + str(temp_hour)
+
+	    		muse_start_times.append(t_muse_hour + ':' + t_muse_min + ':' + t_muse_sec)
+	    		muse_end_times.append(t_temp_hour + ':' + t_temp_min + ':' + t_muse_sec)
+
+	    	# muse_start_times.append(str(muse_hour) + ':' + str(muse_min) + ':' + str(muse_sec))
+	    	# muse_end_times.append(str(temp_hour) + ':' + str(temp_min) + ':' + str(muse_sec))
+
 
     	# If both muse and HR hours match then just subtract HR min and sec from Muse min and sec to get offse
     	# If muse and HR hours differ subtract HR min and sec from 60 then add to Muse min and sec
@@ -283,10 +309,13 @@ def start_end_times():
 		if gsr_start_times[j] == 'X': time_temp_gsr.append('X')
 		else:
 			time_temp_gsr.append(datetime.strptime(gsr_start_times[j], '%H:%M:%S').time())
-	
+	# print(gsr_start_times)
+
+
 	# This large for loop will create with start and stop arrays in the correct format, accounts for sec sum>59, or if time is missing indicated by 'X'
 	for k in range(len(gsr_start_times)):
 		offset_index = int(recording_transitions[k]) - 1
+		rec = int(recording_transitions_muse[k])-1
 		if gsr_start_times[k] == 'X': 
 			hr_start_times.append('X')
 			hr_end_times.append('X')
@@ -301,11 +330,12 @@ def start_end_times():
 			sec_sum_gsr = int(time_temp_gsr[k].second)
 			min_sum_gsr = int(time_temp_gsr[k].minute)
 			min_sum_end_gsr = min_sum_gsr + 1
-			sec_sum_muse = int(time_temp_gsr[k].second) + muse_sec
-			min_sum_muse = int(time_temp_gsr[k].minute) + muse_min
+			sec_sum_muse = int(time_temp_gsr[k].second) + muse_sec_array[rec]
+			min_sum_muse = int(time_temp_gsr[k].minute) + muse_min_array[rec]
 			min_sum_end_muse = min_sum_muse + 1
-			hour_sum_muse = muse_hour
-			hour_sum_end_muse = muse_hour
+			hour_sum_muse = muse_hour_array[rec]
+			hour_sum_end_muse = muse_hour_array[rec]
+			print(time_temp_gsr[k].minute, muse_min_array[rec], min_sum_muse,recording_transitions_muse[k])
 			if sec_sum > 59: 
 				sec_sum = sec_sum - 60
 				min_sum = min_sum + 1
@@ -341,16 +371,21 @@ def start_end_times():
 			if min_sum_muse < 10: min_sum_muse = '0' + str(min_sum_muse)
 			if min_sum_end_muse > 9: min_sum_end_muse = str(min_sum_end_muse)
 			if min_sum_end_muse < 10: min_sum_end_muse = '0' + str(min_sum_end_muse)
+			# print(min_sum_muse)
 
 			#Creating each start and stop time arrays that are used to search for the correct rows to start and stop at
 			hr_start_times.append('00:' + min_sum + ':' +  sec_sum)
 			hr_end_times.append('00:' + min_sum_end + ':' + sec_sum)
 
-			gsr_start_times_corrected.append("'0:" + min_sum_gsr + ':' + sec_sum_gsr + '.0')
-			gsr_end_times_corrected.append("'0:" + min_sum_end_gsr + ':' + sec_sum_gsr + '.0')
+			gsr_start_times_corrected.append("'0:" + min_sum_gsr + ':' + sec_sum_gsr)
+			gsr_end_times_corrected.append("'0:" + min_sum_end_gsr + ':' + sec_sum_gsr)
 
-			muse_start_times.append(hour_sum_muse + ':' + min_sum_muse + ':' + sec_sum_muse)
-			muse_end_times.append(hour_sum_end_muse + ':' + min_sum_end_muse + ':' + sec_sum_muse)
+			if k != 0:
+				muse_start_times.append(hour_sum_muse + ':' + min_sum_muse + ':' + sec_sum_muse)
+				muse_end_times.append(hour_sum_end_muse + ':' + min_sum_end_muse + ':' + sec_sum_muse)
+
+	print(muse_start_times)
+	print(len(muse_start_times),len(gsr_start_times))
 
 
 
@@ -395,19 +430,44 @@ def clip_gsr():
 	row_count = 2
 
 	for h in range(len(gsr_start_times_corrected)-1):
-		wb.worksheets[h].cell(row=1, column=4).value =	"Time_gsr"
-		wb.worksheets[h].cell(row=1, column=5).value =	"value_gsr"
-		for i, row in enumerate(originalFile_gsr):
-			for j, col in enumerate(row):
-				# if i == 7:  wb.worksheets[0].cell(row=i, column=j+4).value = originalFile_gsr[i][j]
-				for field in row:
-					#if gsr_start_times_corrected[2] in field:  print(i)
-					if gsr_start_times_corrected[h] in field: clip_flag = 1
-					if gsr_end_times_corrected[h] in field: clip_flag = 0
-					if clip_flag == 1: 
-						wb.worksheets[h].cell(row=row_count, column=j+4).value = originalFile_gsr[i][j]
-			if clip_flag == 1:  row_count += 1
-		row_count = 2
+		if recording_transitions[h] == '1':
+			wb.worksheets[h].cell(row=1, column=4).value =	"Time_gsr"
+			wb.worksheets[h].cell(row=1, column=5).value =	"value_gsr"
+			for i, row in enumerate(originalFile_gsr):
+				for j, col in enumerate(row):
+					# if i == 7:  wb.worksheets[0].cell(row=i, column=j+4).value = originalFile_gsr[i][j]
+					for field in row:
+						#if gsr_start_times_corrected[2] in field:  print(i)
+						if gsr_start_times_corrected[h] in field: clip_flag = 1
+						if gsr_end_times_corrected[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+4).value = originalFile_gsr[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
+
+		if recording_transitions[h] != '1':
+			updated_file_gsr = os.path.join(fileDir, 'gsr/', session, 'gsr_'+ subject + '_part' + recording_transitions[h] + '.csv')
+			with open(updated_file_gsr, 'rU') as csvFile:
+		    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+		    		originalFile_gsr = list(reader)
+		    	csvFile.close()
+
+			clip_flag = 0 
+			row_count = 2
+
+			wb.worksheets[h].cell(row=1, column=4).value =	"Time_gsr"
+			wb.worksheets[h].cell(row=1, column=5).value =	"value_gsr"
+			for i, row in enumerate(originalFile_gsr):
+				for j, col in enumerate(row):
+					# if i == 7:  wb.worksheets[0].cell(row=i, column=j+4).value = originalFile_gsr[i][j]
+					for field in row:
+						#if gsr_start_times_corrected[2] in field:  print(i)
+						if gsr_start_times_corrected[h] in field: clip_flag = 1
+						if gsr_end_times_corrected[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+4).value = originalFile_gsr[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
 
 	wb.save(clip_file_name)
 
@@ -423,18 +483,71 @@ def clip_muse():
 	
 	row_count = 2
 
-	for h in range(len(muse_start_times)-1):
-		for i, row in enumerate(originalFile_muse):
-			for j, col in enumerate(row):
-				if i == 1:  
-					wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse[0][j]
-				for field in row:
-					if muse_start_times[h] in field: clip_flag = 1
-					if muse_end_times[h] in field: clip_flag = 0
-					if clip_flag == 1: 
-						wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse[i][j]
-			if clip_flag == 1:  row_count += 1
-		row_count = 2
+	for h in range(len(muse_start_times)):
+		if recording_transitions_muse[h] == '1':
+			for i, row in enumerate(originalFile_muse_1):
+				for j, col in enumerate(row):
+					if i == 1:  
+						wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse_1[0][j]
+					for field in row:
+						if muse_start_times[h] in field: clip_flag = 1
+						if muse_end_times[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse_1[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
+
+		if recording_transitions_muse[h] == '2':
+			for i, row in enumerate(originalFile_muse_2):
+				for j, col in enumerate(row):
+					if i == 1:  
+						wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse_2[0][j]
+					for field in row:
+						if muse_start_times[h] in field: clip_flag = 1
+						if muse_end_times[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse_2[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
+
+		if recording_transitions_muse[h] == '3':
+			for i, row in enumerate(originalFile_muse_3):
+				for j, col in enumerate(row):
+					if i == 1:  
+						wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse_3[0][j]
+					for field in row:
+						if muse_start_times[h] in field: clip_flag = 1
+						if muse_end_times[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse_3[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
+
+		if recording_transitions_muse[h] == '4':
+			for i, row in enumerate(originalFile_muse_4):
+				for j, col in enumerate(row):
+					if i == 1:  
+						wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse_4[0][j]
+					for field in row:
+						if muse_start_times[h] in field: clip_flag = 1
+						if muse_end_times[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse_4[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
+
+		if recording_transitions_muse[h] == '5':
+			for i, row in enumerate(originalFile_muse_1):
+				for j, col in enumerate(row):
+					if i == 1:  
+						wb.worksheets[h].cell(row=1, column=j+6).value = originalFile_muse_5[0][j]
+					for field in row:
+						if muse_start_times[h] in field: clip_flag = 1
+						if muse_end_times[h] in field: clip_flag = 0
+						if clip_flag == 1: 
+							wb.worksheets[h].cell(row=row_count, column=j+6).value = originalFile_muse_5[i][j]
+				if clip_flag == 1:  row_count += 1
+			row_count = 2
 
 	wb.save(clip_file_name)
 
@@ -564,16 +677,65 @@ for i in range(len(hr_offset_min)):
 start_end_times()
 clip_hr()
 clip_gsr()
+
+#	Need a loop to make a list for each muse file, the call clip muse and have it get thr correct list
+for m in range(1,number_of_recordings+1):
+	if m ==1:
+		file_muse_1 = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject +'.csv')
+		global originalFile_muse_1
+		with open(file_muse_1, 'rb') as csvFile:
+	    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+	    		originalFile_muse_1 = list(reader)
+
+	if m ==2:
+		file_muse_2 = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + str(m) + '.csv')
+		global originalFile_muse_2
+		with open(file_muse_2, 'rb') as csvFile:
+	    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+	    		originalFile_muse_2 = list(reader)
+
+	if m ==3:
+		file_muse_3 = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + str(m) + '.csv')
+		global originalFile_muse_3
+		with open(file_muse_3, 'rb') as csvFile:
+	    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+	    		originalFile_muse_3 = list(reader)
+
+	if m ==4:
+		file_muse_4 = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + str(m) + '.csv')
+		global originalFile_muse_4
+		with open(file_muse_4, 'rb') as csvFile:
+	    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+	    		originalFile_muse_4 = list(reader)
+
+	if m ==5:
+		file_muse_5 = os.path.join(fileDir, 'muse/', session, 'muse_'+ subject + '_part' + str(m) + '.csv')
+		global originalFile_muse_5
+		with open(file_muse_5, 'rb') as csvFile:
+	    		reader = csv.reader(csvFile)							# create reader wrapped around an object.  These means use one time and done, so can't call twice.
+	    		originalFile_muse_5 = list(reader)
+
+
+
+
 clip_muse()
-game_file_paths()
-clip_game()
+# game_file_paths()
+# clip_game()
 # print(hr_offset_start)
 # print(hr_offset_end)
 # print(hr_start_times)
 # print(number_of_recordings)
 #print(array_game[2df][0])
-print(hr_offset_start)
-print(hr_start_times)
-print(hr_offset_start[0])
+# print(hr_offset_start)
+# print(hr_start_times)
+# print(hr_offset_start[0])
+# print(gsr_start_times_corrected)
+# print(recording_transitions)
 
+# print(muse_start_times)
+# print(muse_min_array)
+print('gsr start times')
+print(gsr_start_times_corrected)
+print('gsr end times')
+print(gsr_end_times_corrected)
 
