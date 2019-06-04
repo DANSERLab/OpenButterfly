@@ -23,7 +23,7 @@ import fnmatch
 
 
 subject="Paniz"						# Subject's name as formated in File name
-session="Session2"					# Session number to check
+session="Session12"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
@@ -719,8 +719,8 @@ for m in range(1,number_of_recordings+1):
 
 
 clip_muse()
-# game_file_paths()
-# clip_game()
+game_file_paths()
+clip_game()
 # print(hr_offset_start)
 # print(hr_offset_end)
 # print(hr_start_times)
