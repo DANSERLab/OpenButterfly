@@ -22,9 +22,9 @@ import fnmatch
 #============================================================================================================================
 
 
-subject="Tyler"						# Subject's name as formated in File name
+subject="Simon"						# Subject's name as formated in File name
 session="Session2"					# Session number to check
-session_list = ['Session6', 'Session9', 'Session10', 'Session11', 'Session12']
+session_list = ['Session2', 'Session4']
 
 ###########################################################################################################################	
 #============================================================================================================================
@@ -282,7 +282,7 @@ def start_end_times():
 
 	# This large for loop will create with start and stop arrays in the correct format, accounts for sec sum>59, or if time is missing indicated by 'X'
 	for k in range(len(gsr_start_times)):
-		offset_index = int(recording_transitions[k]) - 1
+		offset_index = int(recording_transitions[k+1]) - 1
 		rec = int(recording_transitions_muse[k])-1
 		if gsr_start_times[k] == 'X': 
 			hr_start_times.append('X')
@@ -348,9 +348,9 @@ def start_end_times():
 			gsr_start_times_corrected.append("'0:" + min_sum_gsr + ':' + sec_sum_gsr)
 			gsr_end_times_corrected.append("'0:" + min_sum_end_gsr + ':' + sec_sum_gsr)
 
-			if k != 0:
-				muse_start_times.append(hour_sum_muse + ':' + min_sum_muse + ':' + sec_sum_muse)
-				muse_end_times.append(hour_sum_end_muse + ':' + min_sum_end_muse + ':' + sec_sum_muse)
+
+			muse_start_times.append(hour_sum_muse + ':' + min_sum_muse + ':' + sec_sum_muse)
+			muse_end_times.append(hour_sum_end_muse + ':' + min_sum_end_muse + ':' + sec_sum_muse)
 
 	print(muse_start_times)
 	print(len(muse_start_times),len(gsr_start_times))
@@ -451,7 +451,7 @@ def clip_muse():
 	
 	row_count = 2
 
-	for h in range(len(muse_start_times)):
+	for h in range(len(muse_start_times)-1):
 		if recording_transitions_muse[h] == '1':
 			for i, row in enumerate(originalFile_muse_1):
 				for j, col in enumerate(row):
