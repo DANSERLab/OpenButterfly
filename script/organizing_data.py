@@ -22,8 +22,8 @@ import fnmatch
 #============================================================================================================================
 
 
-subject="Paniz"						# Subject's name as formated in File name
-session="Session4"					# Session number to check
+subject="Tyler"						# Subject's name as formated in File name
+session="Session12"					# Session number to check
 clock_start_times = []				# Array of global clock times that were recorded
 hr_clock_start_time = []			# Time the HR monitor began recording
 hr_offset_min = []
