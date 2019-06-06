@@ -22,9 +22,9 @@ import fnmatch
 #============================================================================================================================
 
 
-subject="Kai"						# Subject's name as formated in File name
+subject="Tyler"						# Subject's name as formated in File name
 session="Session2"					# Session number to check
-session_list = ['Session6','Session7','Session10', 'Session12']
+session_list = ['Session9','Session10', 'Session11']
 
 ###########################################################################################################################	
 #============================================================================================================================
