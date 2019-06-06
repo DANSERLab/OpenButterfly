@@ -24,7 +24,7 @@ import fnmatch
 
 subject="Paniz"						# Subject's name as formated in File name
 session="Session2"					# Session number to check
-session_list = ['Session9','Session10','Sessio11','Session12']
+session_list = ['Sessio11','Session12']
 
 ###########################################################################################################################	
 #============================================================================================================================
